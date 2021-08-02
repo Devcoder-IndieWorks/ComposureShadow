@@ -48,5 +48,27 @@ Level에 배치 해 둔 **CompositingElement** Actor의 Composure -> Input -> Tr
 
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+## Composure에서 바닥이 아닌 곳에 그림자 표현
 
+Composure에서 바닥면이 아닌 벽면이나 계단과 같은 곳에 그림자를 드리우기 위해서 어떻게 해야 하는지에 대해 설명하고자 한다.
+
+### 과제
+
+기본 원리는 바닥에 Shadow를 드리우는 방식과 같다. 다만, 벽면이나 계단에 Shadow를 드리우기 위해서는 Diffuse Light에 따른 면의 음영에 대한 처리를 해 줘야 한다.
+
+### 실패 1
+
+벽과 같은 사각 물체를 Shadow가 드리워지는 Scene 캡쳐 항목에 추가하고, 또한 Shadow가 드리워지지 않는 Scene 캡쳐에도 추가 한다. 그리고 결과를 확인 해 보면 다음 그림과 같이 제대로 된 결과가 아니다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/Failed_1.png)
+
+[그림: Shadow 결과 화면]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/ShadowCaptureCube_1.png)
+
+[그림: Shadow Scene 캡쳐 화면]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowCaptureCube_1.png)
+
+[그림: No Shadow Scene 캡쳐 화면]
 
