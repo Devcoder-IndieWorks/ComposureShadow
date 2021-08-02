@@ -40,7 +40,7 @@ Shadow가 드리워지지 않은 Scene 캡쳐는 **GroundLayer만 빠지고** �
 
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowCapture.png)
 
-![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowDetail.png)
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShaodwDetail.png)
 
 Level에 배치 해 둔 **CompositingElement** Actor의 Composure -> Input -> Transform/Compositing Passes -> Transform Passes 항목의 입력 엘리먼트에 Post-Process Material에서 설정 한 항목에 Shadow가 드리워진, Shadow가 드리워지지 않은 Scene 캡쳐 정보를 전달 하기 위해 아래 그림의 빨간 박스로 표시된 것처럼 설정 해 준다.
 
