@@ -112,7 +112,29 @@ Shadow가 드리워지는 Scene 캡쳐 하는 구성과 Shadow가 드리워지�
 
 [그림: No Shadow Scene 캡쳐 구성 요소]
 
+**No Shadow Actors**에 등록되는 Actor는 배경에 Shadow를 만들지 않고 오직 자신에게만 Shadow가 생기게 SelfShadowOnly 옵션을 설정하게 된다. 그리고 이러한 처리를 하기 위해 기존 BP_CgCaptureCompElement Actor를 상속하여 다른 물체에는 Shadow를 드리우지 않고 Self Shadow만 나오도록하여 Scene 캡처하는 새로운 Actor(**BP_CgNoShadowCaptureCompElement**)를 만든다.
 
+BP_CgNoShadowCaptureCompElement는 기존 BP_CgCaptureCompElement를 상속하고 RenderSceneCapture 함수를 재정의 한다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/RenderSceneCapture_Override_BP.png)
+
+[그림: BP_CgCaptureCompElement에 정의된 RenderSceneCapture 함수를 재정의 함]
+
+SelfShadowOnly 옵션을 설정하는 함수는 SetSelfShadowOnly 함수로써 UE4에서 Mesh에 SelfShadow만 나오도록 하기위한 설정은 C++로만 할 수 있기에 C++ 함수를 호출 하는 로직만 있다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/SetSelfShadowOnly_BP.png)
+
+[그림: SetSelfShadowOnly Blueprint 함수]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/SetSelfShadowOnly.png)
+
+[그림: SetSelfShadowOnly C++ 함수]
+
+다음 그림은 Composure의 Post-Process Material 코드인데, Shadow가 없는 Scene 캡처 이미지에서 배경이 검은 부분을 흰색으로 만들기 위해 If 구문을 사용했다. 검은색(0, 0, 0)의 특정 채널(R 채널) 값에서 0.001값을 빼게 되면 -값이 되고 이를 체크해서 흰색으로 변환한다. 만일 0.001값을 빼서 -값이 되지 않는다면 그 픽셀은 검은배경 색이 아니므로 원래 픽셀 색을 사용해서 Shadow 추출 연산(녹색 박스)을 하게 된다.(특정 상수 값을 빼서 검은색 부분인지를 판별하는 방법은 오차로 인해 의도와 다른 결과가 나올 수 있기 때문에 좋은 방법은 아니다.)
+
+배경이 흰색이면 If 구문을 사용할 필요가 없다. If 구문은 되도록 사용하지 않는게 성능상에도 이점이고 해서 배경이 흰색이 되도록 처리해서 Scene 캡처하여 사용하면 If구문을 건너띄고 바로 픽셀  Color값을 Shadow 추출 연산으로 전달 하면 된다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/CreateShadowMask_1.png)
 
 
 
