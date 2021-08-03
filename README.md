@@ -36,6 +36,26 @@ Unreal Engine 4의 Composure 샘플에서 기본적으로 평평한 바닥에 �
 
 GroundLayer는 바닥에 Shadow가 드리워지기 위해 바닥면이 있어야 하기 때문에 추가한다. 그리고 **UE4에서 Scene Capture시 사용하는 Render Target은 Clear 색이 검은색(0,0,0,1)으로 Clear 되도록 강제화(하드코딩) 되어있어** 나누기 연산을 하기 위해 배경이 흰색이어야 하기 때문에 Scene 전체를 덮는 SkySphereLayer도 추가한다.
 
+* Scene Capture시 Render Target을 검은색으로 Clear 하는 부분에 대한 설명.
+
+  > BP_CgCaptureCompElement Actor는 내부에 SceneCaptureComponent2D를 사용해서 Scene Capture하는데, SceneCaptureComponent2D는 실제 Scene Capture를 FScene의 **UpdateScenCaptureContents()** 함수를 통해서 한다.
+  >
+  > UpdateSceneCaptureContents() 함수 구현 내용을 찾아 확인 해 보면 Render Target Clear를 수행 하는 Render Thread에서 실행 되는 코드에서 하도록 되어져 있으며, 그 코드가 존재하는 부분은 FScene의 **UpdateSceneCaptureContentDeferred_RenderThread()** 함수에 있다.
+
+  ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/UpdateSceneCaptures.png)
+
+  [그림: FScene의 UpdateSceneCaptureContents 함수에서]
+
+  ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/UpdateSceneCaptureContent_RenderThread.png)
+
+  [그림: FScene의 UpdateSceneCaptureContent_RenderThread 함수에서]
+
+  ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/UpdateSceneCaptureContentDeferred_RenderThread.png)
+
+  [그림: FScene의 UpdateSceneCaptureContentDeferred_RenderThread 함수에서]
+
+  > UpdateSceneCaptureContentDeferred_RenderThread() 함수 그림에서 빨간 박스로 표시된 내용을 보면 **FLinearColor::Black**으로 설정 하는 것을 볼 수 있다. 검정색으로 하드 코딩 되어져 있는 것이다.
+
 Shadow가 드리워지지 않은 Scene 캡쳐는 **GroundLayer만 빠지고** 위와 같은 설정으로 BP_CgCaptureCompElement Actor를 설정하고 Level에 배치하면 된다.**(아래 그림 참조)**
 
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowCapture.png)
@@ -56,9 +76,9 @@ Composure에서 바닥면이 아닌 벽면이나 계단과 같은 곳에 그림�
 
 기본 원리는 바닥에 Shadow를 드리우는 방식과 같다. 다만, 벽면이나 계단에 Shadow를 드리우기 위해서는 Diffuse Light에 따른 면의 음영에 대한 처리를 해 줘야 한다.
 
-### 실패 1
+### 구현 1
 
-벽과 같은 사각 물체를 Shadow가 드리워지는 Scene 캡쳐 항목에 추가하고, 또한 Shadow가 드리워지지 않는 Scene 캡쳐에도 추가 한다. 그리고 결과를 확인 해 보면 다음 그림과 같이 제대로 된 결과가 아니다.
+벽과 같은 사각 물체(Cube Actor)를 Shadow가 드리워지는 Scene 캡쳐 항목에 추가하고, 또한 Shadow가 드리워지지 않는 Scene 캡쳐에도 추가 한다. 그리고 결과를 확인 해 보면 다음 그림과 같이 제대로 된 결과가 아니다. 기존의 Shadow 영역을 추출하는 방식으로는 바닥이 아니 벽면이나 계단같은 물체에 드리워진 Shadow를 제대로 추출하기가 힘들다.
 
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/Failed_1.png)
 
@@ -71,4 +91,30 @@ Composure에서 바닥면이 아닌 벽면이나 계단과 같은 곳에 그림�
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowCaptureCube_1.png)
 
 [그림: No Shadow Scene 캡쳐 화면]
+
+### 구현 2
+
+Shadow가 드리워지는 Scene 캡쳐 하는 구성과 Shadow가 드리워지지 않는 Scene 캡쳐 구성을 똑같이 하고, Shadow가 드리워지지 않는 Scene 캡쳐에서 캐릭터의 Self Shadow만 나오게 캐릭터 설정을 변경하며 바닥과 벽과 같은 사각 물체(Cube Actor)에 Shadow가 생기지 않게 된다. 이렇게 한 상태에서 CompositingElement Actor에 설정된 Post-Process Material을 사용해서 Shadow를 추출하면 그림과 같이 정상적인 결과가 나온다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/Success_1.png)
+
+[그림: Shadow 결과 화면]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/ShadowCaptureCube_1.png)
+
+[그림: Shadow Scene 캡쳐 화면]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowCaptureCube_2.png)
+
+[그림: No Shadow Scene 캡쳐 화면 - 배경을 흰색으로 처리하는 SkySphereLayer 요소를 뺀 화면임.]
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/NoShadowDetail_2.png)
+
+[그림: No Shadow Scene 캡쳐 구성 요소]
+
+
+
+
+
+
 
