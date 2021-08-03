@@ -42,7 +42,7 @@ GroundLayer는 바닥에 Shadow가 드리워지기 위해 바닥면이 있어야
   >
   > UpdateSceneCaptureContents() 함수 구현 내용을 찾아 확인 해 보면 Render Target Clear를 수행 하는 Render Thread에서 실행 되는 코드에서 하도록 되어져 있으며, 그 코드가 존재하는 부분은 FScene의 **UpdateSceneCaptureContentDeferred_RenderThread()** 함수에 있다.
 
-  ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/UpdateSceneCaptures.png)
+  ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/UpdateSceneCaptureContents.png)
 
   [그림: FScene의 UpdateSceneCaptureContents 함수에서]
 
