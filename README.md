@@ -112,7 +112,9 @@ Shadow가 드리워지는 Scene 캡쳐 하는 구성과 Shadow가 드리워지�
 
 [그림: No Shadow Scene 캡쳐 구성 요소]
 
-**No Shadow Actors**에 등록되는 Actor는 배경에 Shadow를 만들지 않고 오직 자신에게만 Shadow가 생기게 SelfShadowOnly 옵션을 설정하게 된다. 그리고 이러한 처리를 하기 위해 기존 BP_CgCaptureCompElement Actor를 상속하여 다른 물체에는 Shadow를 드리우지 않고 Self Shadow만 나오도록하여 Scene 캡처하는 새로운 Actor(**BP_CgNoShadowCaptureCompElement**)를 만든다.
+**Self Shadow Only Actors**에 등록되는 Actor는 배경에 Shadow를 만들지 않고 오직 자신에게만 Shadow가 생기게 SelfShadowOnly 옵션을 설정 하기 위한 Actor 목록이다. 그러나 **Excluded Actors** 항목을 설정하게 되면 **Self Shadow Only Actors** 목록은 현재 레벨에 있는 Scene Actors 목록에서 제외하기 위한 목록이 된다. 이렇게 되면 **Self Shadow Only Actors** 목록에 있는 Actors를 빼고 레벨에 있는 Actors들이 자신자신에게만 Shadow를 드리우는 SelfShadowOnly 옵션이 설정 된다. 
+
+그리고 이러한 처리를 하기 위해 기존 BP_CgCaptureCompElement Actor를 상속하여 다른 물체에는 Shadow를 드리우지 않고 Self Shadow만 나오도록하여 Scene 캡처하는 새로운 Actor(**BP_CgNoShadowCaptureCompElement**)를 만든다.
 
 BP_CgNoShadowCaptureCompElement는 기존 BP_CgCaptureCompElement를 상속하고 RenderSceneCapture 함수를 재정의 한다.
 
@@ -120,21 +122,31 @@ BP_CgNoShadowCaptureCompElement는 기존 BP_CgCaptureCompElement를 상속하�
 
 [그림: BP_CgCaptureCompElement에 정의된 RenderSceneCapture 함수를 재정의 함]
 
-SelfShadowOnly 옵션을 설정하는 함수는 SetSelfShadowOnly 함수로써 UE4에서 Mesh에 SelfShadow만 나오도록 하기위한 설정은 C++로만 할 수 있기에 C++ 함수를 호출 하는 로직만 있다.
+SelfShadowOnly 옵션을 설정하는 함수는 __InternalSetSelfShadowOnly 함수로써 UE4에서 Mesh에 SelfShadow만 나오도록 하기위한 설정은 C++로만 할 수 있기에 C++ 함수를 호출 하는 로직만 있다.
 
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/SetSelfShadowOnly_BP.png)
 
 [그림: SetSelfShadowOnly Blueprint 함수]
 
+아래 그림에서 (1)번이 PrimitiveComponent에 Self Shadow Only 옵션을 설정 하는 코드이다. (2)번은 Excluded 항목이 설정 되면 위에서 설명한대로 Self Shadow Only Actors 목록은 Self Shadow Only 옵션 설정을 할 Actors 목록에서 제외 하는 목록이 되는 것을 처리 하는 코드이다. (3)번은 Self Shadow Only Actors 목록에 있는 Actor에게 Self Shadow Only 옵션을 설정 하는 코드이다.
+
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/SetSelfShadowOnly.png)
 
 [그림: SetSelfShadowOnly C++ 함수]
 
-다음 그림은 Composure의 Post-Process Material 코드인데, Shadow가 없는 Scene 캡처 이미지에서 배경이 검은 부분을 흰색으로 만들기 위해 If 구문을 사용했다. 검은색(0, 0, 0)의 특정 채널(R 채널) 값에서 0.001값을 빼게 되면 -값이 되고 이를 체크해서 흰색으로 변환한다. 만일 0.001값을 빼서 -값이 되지 않는다면 그 픽셀은 검은배경 색이 아니므로 원래 픽셀 색을 사용해서 Shadow 추출 연산(녹색 박스)을 하게 된다.(특정 상수 값을 빼서 검은색 부분인지를 판별하는 방법은 오차로 인해 의도와 다른 결과가 나올 수 있기 때문에 좋은 방법은 아니다.)
-
-배경이 흰색이면 If 구문을 사용할 필요가 없다. If 구문은 되도록 사용하지 않는게 성능상에도 이점이고 해서 배경이 흰색이 되도록 처리해서 Scene 캡처하여 사용하면 If구문을 건너띄고 바로 픽셀  Color값을 Shadow 추출 연산으로 전달 하면 된다.
+다음 그림은 Composure의 Post-Process Material 코드인데, 그림에 (1)번은 Shadow, NoShadowCapture 이미지 배경색이 검은색일 경우에 Shadow를 추출하는 Material Function이다. 배경색이 검은색이므로 검은색이 없게하기 위해 검은색을 보정할 색을 (3)번처럼 입력해 준다. 검은색을 없애기 위해 색을 보정하게 되면 Shadow 색도 보정되기 때문에  Shadow 색을 어둡게 하기 위해 power 함수의 exponent 값을 입력해 주는것이 (2)번이다.
 
 ![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/CreateShadowMask_1.png)
+
+[그림: Composure Post-Process Material]
+
+다음 그림은 MF_ShadowMaskBlackBG 메터리얼 함수로써 (1)번은 검은색을 보정하기 위해(없애기 위해) 입력 색을 더해 주는 것이다. (2)과 (3)은 Shadow가 있는 칼라값과 Shadow가 없는 칼라값을 나누어 Shadow만 추출하는 코드이다.
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/MF_ShadowMaskBlackBG.png)
+
+다음 그림은 MF_ShadowMask 메터리얼 함수로써 UE4 Composure Shadow 처리 코드를 메터리얼 함수로 만든 것이다. 이 함수를 사용하기 위해서는 Shadow, NoShadowCapture 이미지 배경색이 검은색이 아니어야만 한다.**(만일 검은색이 있으면, (1)번 나누기 연산에 의해 Bad Pixel이 발생하게 된다.)**
+
+![](https://github.com/Devcoder-IndieWorks/ComposureShadow/blob/master/Images/MF_ShadowMask.png)
 
 
 
